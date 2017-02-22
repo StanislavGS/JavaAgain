@@ -5,11 +5,14 @@
  */
 package gUI;
 
+import graphicsObjects.CadObject;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.geom.Line2D;
+import java.io.IOException;
 import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
@@ -96,10 +99,16 @@ public class mainFrame extends javax.swing.JFrame {
         final JFileChooser fc = new JFileChooser();
         fc.addChoosableFileFilter(new FileNameExtensionFilter("Cad files", "cad"));
         int returnVal = fc.showOpenDialog(this);
-        if (fc!=null && fc.getSelectedFile().getAbsolutePath()!=null){
-            
-            System.out.println("---");
-            
+        if (fc != null && fc.getSelectedFile().getAbsolutePath() != null) {
+
+            CadObject obj = new CadObject();
+
+            try {
+                IO.Read.readCad(obj, fc.getSelectedFile().getAbsolutePath());
+            } catch (IOException ex) {
+                JOptionPane.showMessageDialog(null, "Can't read file!" + ex.getMessage()
+                    , "Error", JOptionPane.ERROR_MESSAGE);
+            }
         }
     }//GEN-LAST:event_fileOpenMenuItemActionPerformed
 

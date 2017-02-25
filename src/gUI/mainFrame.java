@@ -5,6 +5,7 @@
  */
 package gUI;
 
+import IO.Read;
 import graphicsObjects.CadObject;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -104,7 +105,9 @@ public class mainFrame extends javax.swing.JFrame {
             CadObject obj = new CadObject();
 
             try {
-                IO.Read.readCad(obj, fc.getSelectedFile().getAbsolutePath());
+                Read rd=new Read();
+                rd.readCad(fc.getSelectedFile().getAbsolutePath());
+                obj=rd.getcObj();
             } catch (IOException ex) {
                 JOptionPane.showMessageDialog(null, "Can't read file!" + ex.getMessage()
                     , "Error", JOptionPane.ERROR_MESSAGE);

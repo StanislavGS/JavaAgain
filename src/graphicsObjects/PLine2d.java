@@ -16,30 +16,25 @@ import java.util.List;
 public class PLine2d implements Iterable<Vector2d>{
 
     private List<Point2D> points;
-    private String type;
-    private double elevation;
-    private int number;
+    private short type;
+    private double elevation;    
     private boolean isInContour;
     
     public PLine2d() {
         this.points=new ArrayList<>();
-        setType("");
+        setType((short) 0);
         setElevation(0);
         isInContour=false;
     }
     
-    public PLine2d(String type){
+    public PLine2d(short type){
         this.points=new ArrayList<>();
         setType(type);
         setElevation(0);
         isInContour=false;
     }
      
-    public PLine2d(String type,int number){
-        this(type);
-        setNumber(number);
-    }
-
+   
     @Override
     public Iterator<Vector2d> iterator() {
         Iterator<Vector2d> it = new Iterator<Vector2d>() {
@@ -64,7 +59,7 @@ public class PLine2d implements Iterable<Vector2d>{
         return it;
     }
 
-    public void setType(String type) {
+    public void setType(short type) {
         this.type = type;
     }
 
@@ -72,16 +67,6 @@ public class PLine2d implements Iterable<Vector2d>{
         this.elevation = elevation;
     }
 
-    public int getNumber() {
-        return number;
-    }
-
-    public void setNumber(int number) {
-        this.number = number;
-    }
-    
-    
-    
     void addPoint(Point2D point){
         this.points.add(point);
     }

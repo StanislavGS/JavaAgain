@@ -6,7 +6,7 @@
 package gUI;
 
 import IO.Read;
-import graphicsObjects.CadObject;
+import cadObjects.CadObject;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;

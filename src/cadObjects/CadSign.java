@@ -15,6 +15,7 @@ import java.time.LocalDate;
 public class CadSign extends Point2D{
     private short type;
     private int number;
+    private Point2D pos;
     private float rot;
     private float scale;
     private LocalDate begDate;
@@ -24,6 +25,18 @@ public class CadSign extends Point2D{
         setType(type);
     }
 
+    public CadSign(short type, int number, Point2D pos, float rot, float scale, LocalDate begDate, LocalDate endDate) {
+        this.setType(type);
+        this.number = number;
+        this.pos = pos;
+        this.rot = rot;
+        this.scale = scale;
+        this.begDate = begDate;
+        this.endDate = endDate;
+    }
+
+    
+    
     public void setType(short type) {
         this.type = type;
     }

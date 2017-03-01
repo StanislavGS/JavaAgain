@@ -16,5 +16,10 @@ public class Contour {
     String number;
     List<Contour> surround;
     List<Contour> nested;
+
+    public List<PLine2d> getLines() {
+        return lines;
+    }
+    
     
 }

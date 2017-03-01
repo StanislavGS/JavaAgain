@@ -10,7 +10,11 @@ import graphicsObjects.PLine2d;
 import graphicsObjects.Point2D;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  *
@@ -30,18 +34,21 @@ public class CadObject {
     private String contents;
     private String comment;    
     
-    List<BasePoint> rgo;
-    List<CadLine> lines;
-    List<Contour> contours;
-    
+    private Map<Long,CadLinePoint> linePoints;
+    private List<BasePoint> rgo;
+    private Map<Integer,CadLine> lines;
+    private Map<String,Contour> contours;
+    private List<CadSign> signs;
+    private List<CadText> texts;
 
     public CadObject() {
         this.ref = new double[2];
         this.window = new Point2D[2];
         rgo=new ArrayList<>();
-        lines=new ArrayList<>();
-        contours=new ArrayList<>();
-        
+        lines=new TreeMap<>();
+        contours=new HashMap<>();
+        signs=new LinkedList<>();
+        texts=new LinkedList<>();        
     }
 
     public void setVer(String ver) {
@@ -83,10 +90,32 @@ public class CadObject {
     public void setComment(String comment) {
         this.comment = comment;
     }
+
+    public List<BasePoint> getRgo() {
+        return rgo;
+    }
+
+    public Map<Integer, CadLine> getLines() {
+        return lines;
+    }
+
+    public Map<String, Contour> getContours() {
+        return contours;
+    }
+
+    public List<CadSign> getSigns() {
+        return signs;
+    }
+
+    public List<CadText> getTexts() {
+        return texts;
+    }
+
+    public Map<Long, CadLinePoint> getLinePoints() {
+        return linePoints;
+    }
     
-    
-    
-    
+        
     
     
 }

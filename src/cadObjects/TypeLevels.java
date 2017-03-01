@@ -10,18 +10,27 @@ package cadObjects;
  * @author stanislav
  */
 public enum TypeLevels {
-    notABorder(0),
-    borderLowPriority(1),
-    borderNormalPriority(2),
-    borderHighPriority(3),
-    border(4);
-    private final int value;
+    notABorder((byte) 0),
+    borderLowPriority((byte) 1),
+    borderNormalPriority((byte) 2),
+    borderHighPriority((byte) 3),
+    border((byte) 4);
+    private final byte value;
 
-    private TypeLevels(int value) {
+    private TypeLevels(byte value) {
         this.value = value;
     }
 
     public int getValue() {
         return value;
+    }
+    
+    public static TypeLevels forByte(byte id) {
+        for (TypeLevels tl : values()) {
+            if (tl.getValue() == id) {
+                return tl;
+            }
+        }
+        throw new IllegalArgumentException("Invalid Day id: " + id);
     }
 }

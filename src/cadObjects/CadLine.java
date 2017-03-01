@@ -19,9 +19,15 @@ public class CadLine extends PLine2d {
     private LocalDate _begDate;
     private LocalDate _endDate;
 
-    public CadLine(int number, short type) {
+    public CadLine(int number, short type,TypeLevels level,Double elevation,LocalDate begDate,
+            LocalDate endDate) {
         super(type);
+        super.setElevation(elevation);
         setNumber(number);
+        setLevel(level);
+        setBegDate(begDate);
+        setEndDate(endDate);
+        
     }
 
     public int getNumber() {
@@ -32,4 +38,18 @@ public class CadLine extends PLine2d {
         this.number = number;
     }
 
+    public void setLevel(TypeLevels level) {
+        this.level = level;
+    }
+
+    public void setBegDate(LocalDate _begDate) {
+        this._begDate = _begDate;
+    }
+
+    public void setEndDate(LocalDate _endDate) {
+        this._endDate = _endDate;
+    }
+    
+     
+    
 }

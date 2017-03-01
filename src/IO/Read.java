@@ -5,10 +5,14 @@
  */
 package IO;
 
+import cadObjects.BasePoint;
 import cadObjects.CadContour;
 import cadObjects.CadLine;
+import cadObjects.CadLinePoint;
 import cadObjects.CadObject;
+import cadObjects.CadSign;
 import cadObjects.CadText;
+import cadObjects.TypeLevels;
 import graphicsObjects.Point2D;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -28,6 +32,10 @@ public class Read {
     private String[] _allLines;
     private int pointer = 0;
 
+    public Read() {
+        this.cObj = new CadObject();
+    }
+
     public void readCad(String filePathName) throws IOException {
         byte[] fileLines = Files.readAllBytes(Paths.get(filePathName));
 
@@ -44,6 +52,7 @@ public class Read {
         this.cObj = new CadObject();
         readHeader();
         readCadaster();
+        readTables();
 
     }
 
@@ -106,9 +115,9 @@ public class Read {
     private byte statusLine = 0;
 
     private void readCadaster() {
-        CadLine currentLine;
-        CadContour currentContour;
-        CadText currentText;
+        CadLine currentLine = null;
+        CadContour currentContour = null;
+        CadText currentText=null;
         while (this._allLines[++pointer].trim().equalsIgnoreCase("LAYER CADASTER"));
         while (this._allLines[pointer].trim().equalsIgnoreCase("END_LAYER")) {
             if (this._allLines[pointer].trim() != "") {
@@ -135,19 +144,19 @@ public class Read {
                             break;
                     }
                 } else {
-                    switch(statusLine){
+                    switch (statusLine) {
                         case 2:
-                            if (!addPointsToLine(currentLine,sts)){
-                                statusLine=0;
+                            if (!addPointsToLine(currentLine, sts)) {
+                                statusLine = 0;
                                 pointer--;
                             }
                         case 3:
-                            if (!addLinesToContour(currentContour,sts)){
-                                statusLine=0;
+                            if (!addLinesToContour(currentContour, sts)) {
+                                statusLine = 0;
                                 pointer--;
                             }
                         case 5:
-                            addTextParameters(currentText,sts)
+                            addTextParameters(currentText, sts);
                     }
 
                 }
@@ -155,6 +164,123 @@ public class Read {
             pointer++;
         }
 
+    }
+
+    private void addBasePoint(String[] sts) {
+        this.cObj.getRgo().add(new BasePoint(Byte.parseByte(sts[1]), Integer.parseInt(sts[2]),
+                Byte.parseByte(sts[6]), Byte.parseByte(sts[9]), Float.parseFloat(sts[7]),
+                Float.parseFloat(sts[8]), Float.parseFloat(sts[10]), Byte.parseByte(sts[11]),
+                Byte.parseByte(sts[12]), Byte.parseByte(sts[13]), sts[14].equals("1"),
+                sts[15].replaceAll("^\"|\"$", ""),
+                LocalDate.parse(sts[16], DateTimeFormatter.ofPattern("d.M.u")),
+                sts[17].equals("0") ? null
+                : LocalDate.parse(sts[17], DateTimeFormatter.ofPattern("d.M.u")),
+                Double.parseDouble(sts[3]), Double.parseDouble(sts[4]),
+                Float.parseFloat(sts[10])));
+    }
+
+    private CadLine addLine(String[] sts) {
+        int num = Integer.parseInt(sts[2]);
+        CadLine ln = new CadLine(num, Short.parseShort(sts[1]), TypeLevels.forByte(Byte.parseByte(sts[3])),
+                (sts.length > 6) ? Double.parseDouble(sts[6]) : 0.0,
+                LocalDate.parse(sts[4], DateTimeFormatter.ofPattern("d.M.u")),
+                sts[5].equals("0") ? null
+                : LocalDate.parse(sts[5], DateTimeFormatter.ofPattern("d.M.u"))
+        );
+        this.getcObj().getLines().put(num, ln);
+        return ln;
+    }
+
+    private CadContour addContour(String[] sts) {
+        String[] num = sts[2].split(".");
+        short[] numSho = new short[num.length];
+        for (int i = 0; i < num.length; i++) {
+            numSho[i] = Short.parseShort(num[i]);
+        }
+
+        CadContour cc = new CadContour(TypeLevels.forByte(Byte.parseByte(sts[1])), numSho,
+                new Point2D(Double.parseDouble(sts[3]), Double.parseDouble(sts[4])),
+                LocalDate.parse(sts[5], DateTimeFormatter.ofPattern("d.M.u")),
+                sts[6].equals("0") ? null
+                : LocalDate.parse(sts[6], DateTimeFormatter.ofPattern("d.M.u")));
+        this.getcObj().getContours().put(sts[2], cc);
+        return cc;
+    }
+
+    private void addSign(String[] sts) {
+        this.cObj.getSigns().add(new CadSign(Short.parseShort(sts[1]), Integer.parseInt(sts[2]),
+                new Point2D(Double.parseDouble(sts[3]), Double.parseDouble(sts[4])), Float.parseFloat(sts[5]),
+                Float.parseFloat(sts[6]), LocalDate.parse(sts[7], DateTimeFormatter.ofPattern("d.M.u")),
+                sts[8].equals("0") ? null : LocalDate.parse(sts[8], DateTimeFormatter.ofPattern("d.M.u"))));
+    }
+
+    private CadText addText(String[] sts) {
+        CadText ct = new CadText(Short.parseShort(sts[1]), Integer.parseInt(sts[2]),
+                new Point2D(Double.parseDouble(sts[3]), Double.parseDouble(sts[4])),
+                Short.parseShort(sts[5]), LocalDate.parse(sts[6], DateTimeFormatter.ofPattern("d.M.u")),
+                sts[7].equals("0") ? null : LocalDate.parse(sts[7], DateTimeFormatter.ofPattern("d.M.u")),
+                Float.parseFloat(sts[8]), CadText.Justify.valueOf(sts[9]));
+        this.cObj.getTexts().add(ct);
+        return ct;
+    }
+
+    private boolean addPointsToLine(CadLine currentLine, String[] sts) {
+
+        if (sts[0].charAt(0) < '0' || sts[0].charAt(0) > '9') {
+            return false;
+        }
+        String[] pts = this._allLines[this.pointer].trim().split(";");
+
+        for (String ppts : pts) {
+            String[] pDetails = ppts.split("\\s+");
+            if (pDetails.length < 3) {
+                throw new BadCadStructureException();
+            }
+            long num = Long.parseLong(pDetails[0]);
+            CadLinePoint lp = new CadLinePoint(num, Double.parseDouble(pDetails[1]),
+                    Double.parseDouble(pDetails[2]), pDetails.length > 3 ? Byte.parseByte(pDetails[3]) : 0,
+                    pDetails.length > 4 ? Byte.parseByte(pDetails[4]) : 0,
+                    pDetails.length > 5 ? Byte.parseByte(pDetails[5]) : 0);
+            this.cObj.getLinePoints().put(num, lp);
+            currentLine.getPoints().add(lp);
+
+        }
+        return true;
+    }
+
+    private boolean addLinesToContour(CadContour currentContour, String[] sts) {
+        if (sts[0].charAt(0) < '0' || sts[0].charAt(0) > '9') {
+            return false;
+        }
+        for(String ln:sts){
+            int num=Integer.parseInt(ln);
+            CadLine lin=this.cObj.getLines().get(num);
+            if(lin==null){
+                throw new BadCadStructureException();
+            }
+            currentContour.getLines().add(lin);
+        }
+        return true;
+    }
+
+    private void addTextParameters(CadText currentText, String[] sts) {
+        currentText.setpText(sts[0]);
+        if (sts.length>=4){
+            currentText.setTypeDO(CadText.TypeDescibedObject.valueOf(sts[1]));
+            currentText.setNumDO(sts[2]);
+            currentText.setGrParam(CadText.GraphParam.valueOf(sts[3]));
+            if (sts.length>4){
+                currentText.setsText(sts[4]);
+            }
+        }
+        
+        if (sts.length>1 && sts.length<4){
+            currentText.setsText(sts[1]);
+        }
+    }
+
+    private void readTables() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     public CadObject getcObj() {

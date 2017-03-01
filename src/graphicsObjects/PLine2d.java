@@ -90,4 +90,10 @@ public class PLine2d implements Iterable<Vector2d>{
         
         points.remove(idx);
     }
+
+    public List<Point2D> getPoints() {
+        return points;
+    }
+    
+    
 }

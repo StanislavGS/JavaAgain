@@ -13,6 +13,8 @@ import cadObjects.CadObject;
 import cadObjects.CadSign;
 import cadObjects.CadText;
 import cadObjects.TypeLevels;
+import dataObjects.RecordOptions;
+import dataObjects.Table;
 import graphicsObjects.Point2D;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -117,7 +119,7 @@ public class Read {
     private void readCadaster() {
         CadLine currentLine = null;
         CadContour currentContour = null;
-        CadText currentText=null;
+        CadText currentText = null;
         while (this._allLines[++pointer].trim().equalsIgnoreCase("LAYER CADASTER"));
         while (this._allLines[pointer].trim().equalsIgnoreCase("END_LAYER")) {
             if (this._allLines[pointer].trim() != "") {
@@ -252,10 +254,10 @@ public class Read {
         if (sts[0].charAt(0) < '0' || sts[0].charAt(0) > '9') {
             return false;
         }
-        for(String ln:sts){
-            int num=Integer.parseInt(ln);
-            CadLine lin=this.cObj.getLines().get(num);
-            if(lin==null){
+        for (String ln : sts) {
+            int num = Integer.parseInt(ln);
+            CadLine lin = this.cObj.getLines().get(num);
+            if (lin == null) {
                 throw new BadCadStructureException();
             }
             currentContour.getLines().add(lin);
@@ -265,22 +267,44 @@ public class Read {
 
     private void addTextParameters(CadText currentText, String[] sts) {
         currentText.setpText(sts[0]);
-        if (sts.length>=4){
+        if (sts.length >= 4) {
             currentText.setTypeDO(CadText.TypeDescibedObject.valueOf(sts[1]));
             currentText.setNumDO(sts[2]);
             currentText.setGrParam(CadText.GraphParam.valueOf(sts[3]));
-            if (sts.length>4){
+            if (sts.length > 4) {
                 currentText.setsText(sts[4]);
             }
         }
-        
-        if (sts.length>1 && sts.length<4){
+
+        if (sts.length > 1 && sts.length < 4) {
             currentText.setsText(sts[1]);
         }
     }
 
     private void readTables() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        boolean isOpenTable = false;
+        Table currentTable = null;
+        while (this.pointer < this._allLines.length) {
+            String[] sts = this._allLines[pointer].trim().split("\\s+");
+            if (isOpenTable) {
+                if (sts[0].equals("F")) {
+                    currentTable.getRecordsDescr().add(new RecordOptions(sts[1],
+                            RecordOptions.RecordType.valueOf(sts[2]), Byte.parseByte(sts[3]),
+                            Byte.parseByte(sts[4]), Byte.parseByte(sts[5]),
+                            sts.length > 6 ? sts[6] : "", null));
+                } else if (sts[0].equals("D")) {
+                    currentTable.addRow(Arrays.copyOfRange(sts, 1, sts.length));
+                }else if (sts[0].equals("END_TABLE")){
+                    isOpenTable=false;
+                }
+            } else {
+                if (sts[0].equalsIgnoreCase("table")) {
+                    currentTable = new Table(sts[1]);
+                    isOpenTable = true;
+                }
+            }
+
+        }
     }
 
     public CadObject getcObj() {

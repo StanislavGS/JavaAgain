@@ -13,6 +13,7 @@ import cadObjects.CadObject;
 import cadObjects.CadSign;
 import cadObjects.CadText;
 import cadObjects.TypeLevels;
+import com.sun.corba.se.impl.naming.cosnaming.NamingContextImpl;
 import dataObjects.RecordOptions;
 import dataObjects.Table;
 import graphicsObjects.Point2D;
@@ -61,7 +62,7 @@ public class Read {
     private void readHeader() {
         pointer = -1;
         while (this._allLines[++pointer].trim().equalsIgnoreCase("header"));
-        while (this._allLines[pointer].trim().equalsIgnoreCase("END_HEADER")) {
+        while (!this._allLines[pointer].trim().equalsIgnoreCase("END_HEADER")) {
             if (this._allLines[pointer].trim() != "") {
                 String[] sts = this._allLines[pointer].trim().split("\\s+");
                 String allRest = "";
@@ -112,7 +113,7 @@ public class Read {
             pointer++;
         }
 
-        System.out.println(_allLines[pointer]);
+        //System.out.println(_allLines[pointer]);
     }
     private byte statusLine = 0;
 
@@ -121,11 +122,11 @@ public class Read {
         CadContour currentContour = null;
         CadText currentText = null;
         while (this._allLines[++pointer].trim().equalsIgnoreCase("LAYER CADASTER"));
-        while (this._allLines[pointer].trim().equalsIgnoreCase("END_LAYER")) {
+        while (!this._allLines[pointer].trim().equalsIgnoreCase("END_LAYER")) {
             if (this._allLines[pointer].trim() != "") {
                 String[] sts = this._allLines[pointer].trim().split("\\s+");
                 if (statusLine == 0) {
-                    switch (sts[1]) {
+                    switch (sts[0]) {
                         case "P":
                             addBasePoint(sts);
                             break;
@@ -152,13 +153,16 @@ public class Read {
                                 statusLine = 0;
                                 pointer--;
                             }
+                            break;
                         case 3:
                             if (!addLinesToContour(currentContour, sts)) {
                                 statusLine = 0;
                                 pointer--;
                             }
+                            break;
                         case 5:
                             addTextParameters(currentText, sts);
+                            break;
                     }
 
                 }
@@ -194,13 +198,7 @@ public class Read {
     }
 
     private CadContour addContour(String[] sts) {
-        String[] num = sts[2].split(".");
-        short[] numSho = new short[num.length];
-        for (int i = 0; i < num.length; i++) {
-            numSho[i] = Short.parseShort(num[i]);
-        }
-
-        CadContour cc = new CadContour(TypeLevels.forByte(Byte.parseByte(sts[1])), numSho,
+        CadContour cc = new CadContour(TypeLevels.forByte(Byte.parseByte(sts[1])), sts[2],
                 new Point2D(Double.parseDouble(sts[3]), Double.parseDouble(sts[4])),
                 LocalDate.parse(sts[5], DateTimeFormatter.ofPattern("d.M.u")),
                 sts[6].equals("0") ? null
@@ -234,7 +232,7 @@ public class Read {
         String[] pts = this._allLines[this.pointer].trim().split(";");
 
         for (String ppts : pts) {
-            String[] pDetails = ppts.split("\\s+");
+            String[] pDetails = ppts.trim().split("\\s+");
             if (pDetails.length < 3) {
                 throw new BadCadStructureException();
             }
@@ -290,12 +288,12 @@ public class Read {
                 if (sts[0].equals("F")) {
                     currentTable.getRecordsDescr().add(new RecordOptions(sts[1],
                             RecordOptions.RecordType.valueOf(sts[2]), Byte.parseByte(sts[3]),
-                            Byte.parseByte(sts[4]), Byte.parseByte(sts[5]),
+                            Byte.parseByte(sts[4]), sts.length > 5 ? Byte.parseByte(sts[5]) : 0,
                             sts.length > 6 ? sts[6] : "", null));
                 } else if (sts[0].equals("D")) {
-                    currentTable.addRow(Arrays.copyOfRange(sts, 1, sts.length));
-                }else if (sts[0].equals("END_TABLE")){
-                    isOpenTable=false;
+                    currentTable.addRow(this._allLines[pointer].trim().substring(1).trim() );
+                } else if (sts[0].equals("END_TABLE")) {
+                    isOpenTable = false;
                 }
             } else {
                 if (sts[0].equalsIgnoreCase("table")) {
@@ -303,7 +301,7 @@ public class Read {
                     isOpenTable = true;
                 }
             }
-
+            this.pointer++;
         }
     }
 

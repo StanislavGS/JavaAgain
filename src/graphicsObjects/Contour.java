@@ -5,6 +5,7 @@
  */
 package graphicsObjects;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -17,9 +18,19 @@ public class Contour {
     List<Contour> surround;
     List<Contour> nested;
 
+    public Contour(String number) {
+        setNumber(number);
+        this.lines=new ArrayList<>();
+    }
+    
     public List<PLine2d> getLines() {
         return lines;
     }
+
+    public void setNumber(String number) {
+        this.number = number;
+    }
+    
     
     
 }

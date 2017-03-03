@@ -20,10 +20,15 @@ public class CadContour extends Contour{
     private LocalDate _begDate;
     private LocalDate _endDate;
 
-    public CadContour(TypeLevels _type, short[] number ,Point2D _numberPosition,
+    public CadContour(TypeLevels _type, String number ,Point2D _numberPosition,
             LocalDate _begDate, LocalDate _endDate) {
+        super(number);        
+        String[] num = number.split("\\.");
+        this._number = new short[num.length];
+        for (int i = 0; i < num.length; i++) {
+            this._number[i] = Short.parseShort(num[i]);
+        }
         this._type = _type;
-        this._number=number;
         this._numberPosition = _numberPosition;
         this._begDate = _begDate;
         this._endDate = _endDate;

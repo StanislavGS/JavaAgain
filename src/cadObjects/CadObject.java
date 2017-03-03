@@ -46,6 +46,7 @@ public class CadObject {
     public CadObject() {
         this.ref = new double[2];
         this.window = new Point2D[2];
+        linePoints=new TreeMap<>();
         rgo = new ArrayList<>();
         lines = new TreeMap<>();
         contours = new HashMap<>();

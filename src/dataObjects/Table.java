@@ -6,6 +6,7 @@
 package dataObjects;
 
 import IO.BadCadStructureException;
+import static dataObjects.RecordOptions.RecordType.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -34,7 +35,14 @@ public class Table {
         return _recordsDescr;
     }
 
-    public void addRow(String[] values) {
+    public void addRow(String record) {
+        String[] values;
+        if (record.charAt(record.length()-1)==','){
+            values=(record+" ").split(",");
+            values[values.length-1]="";
+        }else{
+            values=record.split(",");
+        }
         if (_recordsDescr.size() != values.length) {
             throw new BadCadStructureException();
         }
@@ -43,7 +51,12 @@ public class Table {
         for (int i = 0; i < values.length; i++) {
             values[i] = values[i].trim();
             if(_recordsDescr.get(i).getFlagImportance()==1){
-                key=values[i];
+                key=values[i].replaceAll("^\"|\"$", "");
+            }
+            if ((values[i].equals("") && (_recordsDescr.get(i).getType().equals(N)  || 
+                    _recordsDescr.get(i).getType().equals(S) ||
+                    _recordsDescr.get(i).getType().equals(L)))){
+                values[i]="0";
             }
             switch (_recordsDescr.get(i).getType()) {
                 case C:

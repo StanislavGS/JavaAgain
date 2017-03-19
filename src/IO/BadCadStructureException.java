@@ -10,5 +10,13 @@ package IO;
  * @author stanislav
  */
 public class BadCadStructureException extends RuntimeException{
+
+    public BadCadStructureException() {
+        super();
+    }
+    
+    public BadCadStructureException(String st) {
+        super(st);
+    }
     
 }

@@ -7,14 +7,13 @@ package gUI;
 
 import IO.Read;
 import cadObjects.CadObject;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.geom.Line2D;
+import java.awt.Component;
 import java.io.IOException;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
-import javax.swing.filechooser.FileFilter;
+import javax.swing.JPanel;
+import javax.swing.JProgressBar;
+import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 /**
@@ -26,8 +25,14 @@ public class mainFrame extends javax.swing.JFrame {
     /**
      * Creates new form mainFrame
      */
+    private JPanel contentPane;
+
     public mainFrame() {
         initComponents();
+//        jProgressBar1.setMinimum(0);
+//        jProgressBar1.setMaximum(100);
+//        jProgressBar1.setBorderPainted(rootPaneCheckingEnabled);
+//        add(jProgressBar1);
         //Graphics g=new Line2D(new Point(5, 10),new Point(30, 20));
         //this.print(g);
     }
@@ -103,15 +108,49 @@ public class mainFrame extends javax.swing.JFrame {
         if (fc != null && fc.getSelectedFile().getAbsolutePath() != null) {
 
             CadObject obj = new CadObject();
+//            JProgressBar jPrB = new JProgressBar();
+//            jPrB.setMinimum(0);
+//            jPrB.setMaximum(100);
+//            jPrB.setUI(this);
+//            this.add(jPrB);
+//            jPrB.setVisible(true);
+//            Component add = this.add(jPrB);
+//this.remove(add);
 
+//            this.contentPane = new JPanel();
+//            contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+//            setContentPane(contentPane);
+//            contentPane.setLayout(null);
+//
+//            JProgressBar pbar = new JProgressBar(0, 100);
+//            pbar.setBounds(22, 77, 386, 27);
+//            contentPane.add(pbar);
+//            pbar.setValue(50);
+////            this.add(pbar);
+//            pbar.setVisible(true);
+//            contentPane.setVisible(true);
+
+            //Component[] cmpo=this.getContentPane().getComponents();//getLayout().addLayoutComponent("pbar", pbar);
+            //this.contentPane.add(pbar);    Null pointer exception
+            JProgressBar pbar =new JProgressBar(0,100);//JProgressBar) cmpo[0];
+            pbar.setValue(50);
+            setContentPane(pbar);
+            pbar.setVisible(true);
+            
+            //pbar.repaint();
+            
+            this.repaint();
+            this.getContentPane().repaint();
             try {
-                Read rd=new Read();
-                rd.readCad(fc.getSelectedFile().getAbsolutePath());
-                obj=rd.getcObj();
+                Read rd = new Read();
+                rd.readCad(fc.getSelectedFile().getAbsolutePath(), pbar);
+                obj = rd.getcObj();
             } catch (IOException ex) {
-                JOptionPane.showMessageDialog(null, "Can't read file!" + ex.getMessage()
-                    , "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(null, "Can't read file!" + ex.getMessage(),
+                        "Error", JOptionPane.ERROR_MESSAGE);
             }
+            pbar.setVisible(false);
+//            this.remove(jPrB);
         }
     }//GEN-LAST:event_fileOpenMenuItemActionPerformed
 

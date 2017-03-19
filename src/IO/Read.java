@@ -18,12 +18,15 @@ import dataObjects.RecordOptions;
 import dataObjects.Table;
 import graphicsObjects.Point2D;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
+import javax.swing.JProgressBar;
+import javax.swing.SwingUtilities;
 
 /**
  *
@@ -39,7 +42,7 @@ public class Read {
         this.cObj = new CadObject();
     }
 
-    public void readCad(String filePathName) throws IOException {
+    public void readCad(String filePathName,JProgressBar jPrB) throws IOException {
         byte[] fileLines = Files.readAllBytes(Paths.get(filePathName));
 
         for (int i = 0; i < fileLines.length; i++) {
@@ -53,13 +56,15 @@ public class Read {
             this._allLines = fl1.split(System.lineSeparator());
         }
         this.cObj = new CadObject();
-        readHeader();
-        readCadaster();
-        readTables();
+        jPrB.setValue(5);
+        jPrB.repaint();
+        readHeader(jPrB);
+        readCadaster (jPrB);
+        readTables(jPrB);
 
     }
 
-    private void readHeader() {
+    private void readHeader(JProgressBar jPrB) {
         pointer = -1;
         while (this._allLines[++pointer].trim().equalsIgnoreCase("header"));
         while (!this._allLines[pointer].trim().equalsIgnoreCase("END_HEADER")) {
@@ -111,13 +116,15 @@ public class Read {
                 }
             }
             pointer++;
+            jPrB.setValue(5+(pointer*95)/_allLines.length);
+            jPrB.repaint();
         }
 
         //System.out.println(_allLines[pointer]);
     }
     private byte statusLine = 0;
 
-    private void readCadaster() {
+    private void readCadaster(JProgressBar jPrB) {
         CadLine currentLine = null;
         CadContour currentContour = null;
         CadText currentText = null;
@@ -167,7 +174,18 @@ public class Read {
 
                 }
             }
-            pointer++;
+            pointer++;//System.out.println(pointer);
+            jPrB.setValue(5+(pointer*95)/_allLines.length);
+            jPrB.repaint();
+            
+////            try{
+//                SwingUtilities.invokeLater(() -> {
+//                    jPrB.setValue(5+(pointer*95)/_allLines.length);
+//                });
+////            }catch(InterruptedException ex){
+////                ;
+////            }
+            
         }
 
     }
@@ -264,22 +282,27 @@ public class Read {
     }
 
     private void addTextParameters(CadText currentText, String[] sts) {
-        currentText.setpText(sts[0]);
-        if (sts.length >= 4) {
-            currentText.setTypeDO(CadText.TypeDescibedObject.valueOf(sts[1]));
-            currentText.setNumDO(sts[2]);
-            currentText.setGrParam(CadText.GraphParam.valueOf(sts[3]));
-            if (sts.length > 4) {
-                currentText.setsText(sts[4]);
-            }
+        String st=this._allLines[this.pointer].trim();
+        String st1=st.replaceFirst("^\"(.[^\"]|(\\\\\"))*\"", "").trim();
+        String st2=st1.replaceFirst("^\\s*[PLCSA].*((AN)|(SI)|(NU)|(LE)|(ХС)|(YC)"
+                + "|(HI)|(AR)|(LP)|(AD)|(ST)|(IO))\\s*", "");
+        String st3=st2.replaceFirst("^\"(.[^\"]|(\\\\\"))*\"", "");
+        if (st1.equals("")){
+            currentText.setpText(st.replaceAll("^\"|\"$", ""));
+        } else if(st2.equals("")){
+          currentText.setTypeDO(CadText.TypeDescibedObject.valueOf(st1.substring(0,1)));
+          currentText.setGrParam(CadText.GraphParam.valueOf(st1.substring(st1.length()-2)));
+          currentText.setNumDO(st1.substring(1,st1.length()-2));
+        } else if(st3.equals("")){
+          currentText.setsText(st2.replaceAll("^\"|\"$", ""));
+        } else{
+            //throw new BadCadStructureException();
+            currentText.setsText(st.replaceAll("^\"|\"$", ""));
         }
 
-        if (sts.length > 1 && sts.length < 4) {
-            currentText.setsText(sts[1]);
-        }
     }
 
-    private void readTables() {
+    private void readTables(JProgressBar jPrB) {
         boolean isOpenTable = false;
         Table currentTable = null;
         while (this.pointer < this._allLines.length) {
@@ -291,7 +314,7 @@ public class Read {
                             Byte.parseByte(sts[4]), sts.length > 5 ? Byte.parseByte(sts[5]) : 0,
                             sts.length > 6 ? sts[6] : "", null));
                 } else if (sts[0].equals("D")) {
-                    currentTable.addRow(this._allLines[pointer].trim().substring(1).trim() );
+                    currentTable.addRow(this._allLines[pointer].trim().substring(1).trim());
                 } else if (sts[0].equals("END_TABLE")) {
                     isOpenTable = false;
                 }
@@ -301,7 +324,8 @@ public class Read {
                     isOpenTable = true;
                 }
             }
-            this.pointer++;
+            this.pointer++;//System.out.println(pointer);
+            jPrB.setValue(5+(pointer*95)/_allLines.length);
         }
     }
 
